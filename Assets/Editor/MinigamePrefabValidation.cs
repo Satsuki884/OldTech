@@ -21,6 +21,16 @@ public static class MinigamePrefabValidation
                 var view = root.GetComponent<MinigameView>();
                 Require(logic && view && view.closeButton && view.progressLabel, "Missing minigame components: " + path);
                 Require(view.actionButtons.Length == counts[i], "Wrong button count: " + path);
+                if (logic is WireMinigame)
+                {
+                    var board = root.GetComponentInChildren<WireDragBoard>(true);
+                    Require(board && !board.raycastTarget && board.contacts.Length == 8, "Wire drawing layer is invalid.");
+                    for (int contactIndex = 0; contactIndex < 8; contactIndex++)
+                    {
+                        var contact = board.contacts[contactIndex] ? board.contacts[contactIndex].GetComponent<WireContactDrag>() : null;
+                        Require(contact && contact.board == board && contact.index == contactIndex, "Wire contact drag reference is invalid.");
+                    }
+                }
                 if (logic is TapeMinigame)
                 {
                     var reel = root.GetComponentInChildren<TapeReelDrag>(true);
@@ -86,14 +96,17 @@ public static class MinigamePrefabValidation
             Require(left.SetEquals(new[] { 0, 1, 2, 3 }) && left.SetEquals(right), "Wire permutation is invalid.");
             int wrong = 4;
             while (wires.WireAt(wrong) == wires.WireAt(0)) wrong++;
-            wires.Act(0); wires.Act(wrong);
-            Require(wires.Completed == 0 && wires.Selected == -1, "Wrong wire pair was accepted.");
+            wires.Connect(0, wrong);
+            Require(wires.Completed == 0, "Wrong wire pair was accepted.");
+            Require(!wires.Connect(0, 0) && !wires.Connect(0, 1) && !wires.Connect(0, -1), "Invalid drop was accepted.");
             for (int i = 0; i < 4; i++)
             {
                 int match = 4;
                 while (wires.WireAt(match) != wires.WireAt(i)) match++;
-                wires.Act(i); Require(wires.Act(match), "Matching wire pair failed.");
+                Require(!wires.Act(i) && !wires.Act(match), "Clicking must not connect wires.");
+                Require(wires.Connect(i, match), "Matching wire drag failed.");
                 Require(wires.Connected(i) && wires.Connected(match), "Connected contacts are inconsistent.");
+                Require(!wires.Connect(i, match), "Connected pair was counted twice.");
             }
         }
         else if (logic is FanMinigame fan)

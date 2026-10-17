@@ -48,4 +48,16 @@ public class MinigameController : MonoBehaviour
         }
         return changed;
     }
+    public bool ConnectWires(int from, int to)
+    {
+        if (!(Current is WireMinigame wires) || !Source || !Source.isActiveAndEnabled) return false;
+        bool changed = wires.Connect(from, to);
+        if (changed) FindFirstObjectByType<AudioManager>()?.PlayClick();
+        if (wires.Solved)
+        {
+            FindFirstObjectByType<BreakdownManager>().Repair(Source);
+            Close();
+        }
+        return changed;
+    }
 }

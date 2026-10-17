@@ -22,7 +22,12 @@ public class MinigameView : MonoBehaviour
         for (int i = 0; i < actionButtons.Length; i++)
         {
             int index = i;
-            if (actionButtons[i]) actionButtons[i].onClick.AddListener(() => Act(index));
+            if (actionButtons[i] && !(minigame is WireMinigame)) actionButtons[i].onClick.AddListener(() => Act(index));
+        }
+        if (minigame is WireMinigame)
+        {
+            var board = GetComponentInChildren<WireDragBoard>(true);
+            if (board) board.Bind(owner, this);
         }
         if (minigame is TapeMinigame)
         {
@@ -43,8 +48,6 @@ public class MinigameView : MonoBehaviour
         if (progressLabel) progressLabel.text = $"ГОТОВО: {minigame.Completed} / {minigame.Target}";
         if (progressLabel && minigame is TapeMinigame tape)
             progressLabel.text = $"НАМОТАНО: {tape.WoundTurns:0.0} об. / {tape.Target}\nЗАЛИШИЛОСЯ: {tape.RemainingTurns:0.0} об.";
-        if (progressLabel && minigame is WireMinigame selection && selection.Selected >= 0)
-            progressLabel.text += $" / ОБРАНО {selection.WireAt(selection.Selected) + 1}";
         for (int i = 0; i < actionButtons.Length; i++)
         {
             var button = actionButtons[i]; if (!button) continue;
@@ -57,9 +60,6 @@ public class MinigameView : MonoBehaviour
                 if (button.image) button.image.color = wireColors[wire];
                 if (label) label.text = wires.Connected(i) ? "З'ЄДНАНО" :
                     (i < 4 ? "ЛІВИЙ " : "ПРАВИЙ ") + (wire + 1);
-                // Selection marker is separate from the artist's button label.
-                var outline = button.GetComponent<Outline>();
-                if (outline) outline.enabled = i < 4 && wires.Selected == i;
             }
             else if (minigame is FanMinigame fan)
             {
@@ -75,4 +75,5 @@ public class MinigameView : MonoBehaviour
             }
         }
     }
+    public Color WireColor(int identity) => wireColors[Mathf.Clamp(identity, 0, wireColors.Length - 1)];
 }
