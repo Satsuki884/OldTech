@@ -1060,6 +1060,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1091}
     m_Modifications:
+    - target: {fileID: 1000, guid: ec6c0b78153f458085cebb7fa3d13c54, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1001, guid: ec6c0b78153f458085cebb7fa3d13c54, type: 3}
       propertyPath: m_SizeDelta.x
       value: 200
@@ -1101,6 +1105,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1091}
     m_Modifications:
+    - target: {fileID: 1000, guid: e526432378d24ade843339ae59504c79, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1001, guid: e526432378d24ade843339ae59504c79, type: 3}
       propertyPath: m_SizeDelta.x
       value: 200
@@ -1142,6 +1150,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1091}
     m_Modifications:
+    - target: {fileID: 1000, guid: c899c1e2823d495e9604e50f8a0b0501, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1001, guid: c899c1e2823d495e9604e50f8a0b0501, type: 3}
       propertyPath: m_SizeDelta.x
       value: 200
@@ -1183,6 +1195,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1091}
     m_Modifications:
+    - target: {fileID: 1000, guid: fb7fb8f80c744e1682773a112d08f9e6, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1001, guid: fb7fb8f80c744e1682773a112d08f9e6, type: 3}
       propertyPath: m_SizeDelta.x
       value: 200
@@ -1367,6 +1383,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: WireZone (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 1000, guid: e526432378d24ade843339ae59504c79, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1001, guid: e526432378d24ade843339ae59504c79, type: 3}
       propertyPath: m_SizeDelta.x
       value: 200
@@ -1416,6 +1436,10 @@ PrefabInstance:
     - target: {fileID: 1000, guid: c899c1e2823d495e9604e50f8a0b0501, type: 3}
       propertyPath: m_Name
       value: TapeZone (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 1000, guid: c899c1e2823d495e9604e50f8a0b0501, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1001, guid: c899c1e2823d495e9604e50f8a0b0501, type: 3}
       propertyPath: m_SizeDelta.x

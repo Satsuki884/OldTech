@@ -35,4 +35,17 @@ public class MinigameController : MonoBehaviour
         }
         return changed;
     }
+    public bool RotateTape(float clockwiseDegrees)
+    {
+        if (!(Current is TapeMinigame tape) || !Source || !Source.isActiveAndEnabled) return false;
+        int before = tape.Completed;
+        bool changed = tape.Rotate(clockwiseDegrees);
+        if (tape.Completed > before) FindFirstObjectByType<AudioManager>()?.PlayClick();
+        if (tape.Solved)
+        {
+            FindFirstObjectByType<BreakdownManager>().Repair(Source);
+            Close();
+        }
+        return changed;
+    }
 }

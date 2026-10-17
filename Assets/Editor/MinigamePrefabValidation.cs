@@ -10,7 +10,7 @@ public static class MinigamePrefabValidation
     public static void Validate()
     {
         string[] types = { "Fan", "Wire", "Tape", "Lamp" };
-        int[] counts = { 8, 8, 1, 6 };
+        int[] counts = { 8, 8, 0, 6 };
         for (int i = 0; i < types.Length; i++)
         {
             string path = $"Assets/Prefabs/Minigames/{types[i]}Minigame.prefab";
@@ -21,6 +21,12 @@ public static class MinigamePrefabValidation
                 var view = root.GetComponent<MinigameView>();
                 Require(logic && view && view.closeButton && view.progressLabel, "Missing minigame components: " + path);
                 Require(view.actionButtons.Length == counts[i], "Wrong button count: " + path);
+                if (logic is TapeMinigame)
+                {
+                    var reel = root.GetComponentInChildren<TapeReelDrag>(true);
+                    Require(reel && reel.rotor, "Tape drag control or rotor is missing.");
+                    Require(reel.GetComponent<UnityEngine.UI.Image>().raycastTarget, "Tape drag surface must receive input.");
+                }
                 foreach (var button in view.actionButtons) Require(button && button.targetGraphic, "Missing action control: " + path);
                 Require(root.GetComponent<Image>().raycastTarget, "Modal must block clicks: " + path);
                 for (int round = 0; round < 64; round++) ValidateRound(logic);
@@ -106,7 +112,17 @@ public static class MinigamePrefabValidation
                 else Require(!lamps.Act(i), "Healthy lamp was accepted.");
             Require(count == lamps.Target, "Broken lamp count differs from target.");
         }
-        else for (int i = 0; i < logic.Target; i++) Require(logic.Act(0), "Tape action failed.");
+        else if (logic is TapeMinigame tape)
+        {
+            Require(!tape.Act(0), "Clicking must not wind tape.");
+            tape.Rotate(-360); Require(tape.RemainingTurns == tape.Target + 1, "Unwinding below zero failed.");
+            tape.Rotate(360); Require(tape.Completed == 0, "One turn must cancel one unwound turn.");
+            tape.Rotate(180); tape.Rotate(-90);
+            Require(Mathf.Abs(tape.WoundTurns - .25f) < .0001f, "Fractional rotation failed.");
+            tape.Rotate(-90);
+            for (int i = 0; i < tape.Target; i++) Require(tape.Rotate(360), "Tape turn failed.");
+            Require(!tape.Rotate(360), "Solved tape accepts more rotation.");
+        }
         Require(logic.Solved && !logic.Act(0), "Repair completion failed.");
         logic.Begin(); Require(!logic.Solved && logic.Completed == 0, "Replay did not reset.");
     }

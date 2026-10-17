@@ -24,6 +24,11 @@ public class MinigameView : MonoBehaviour
             int index = i;
             if (actionButtons[i]) actionButtons[i].onClick.AddListener(() => Act(index));
         }
+        if (minigame is TapeMinigame)
+        {
+            var reel = GetComponentInChildren<TapeReelDrag>(true);
+            if (reel) reel.Bind(owner, this);
+        }
         Refresh();
     }
     void Close() { controller.Close(); }
@@ -33,9 +38,11 @@ public class MinigameView : MonoBehaviour
         controller.Act(index);
         if (controller.Current == minigame) Refresh();
     }
-    void Refresh()
+    public void Refresh()
     {
         if (progressLabel) progressLabel.text = $"ГОТОВО: {minigame.Completed} / {minigame.Target}";
+        if (progressLabel && minigame is TapeMinigame tape)
+            progressLabel.text = $"НАМОТАНО: {tape.WoundTurns:0.0} об. / {tape.Target}\nЗАЛИШИЛОСЯ: {tape.RemainingTurns:0.0} об.";
         if (progressLabel && minigame is WireMinigame selection && selection.Selected >= 0)
             progressLabel.text += $" / ОБРАНО {selection.WireAt(selection.Selected) + 1}";
         for (int i = 0; i < actionButtons.Length; i++)
