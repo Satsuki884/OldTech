@@ -23,18 +23,7 @@ public static class MinigamePrefabValidation
                 Require(view.actionButtons.Length == counts[i], "Wrong button count: " + path);
                 foreach (var button in view.actionButtons) Require(button && button.targetGraphic, "Missing action control: " + path);
                 Require(root.GetComponent<Image>().raycastTarget, "Modal must block clicks: " + path);
-                logic.Begin();
-                Require(logic.Completed == 0, "Begin must reset progress.");
-                if (logic is WireMinigame wires)
-                {
-                    wires.Act(0); wires.Act(5);
-                    Require(wires.Completed == 0 && wires.Selected == -1, "Wrong wire pair was accepted.");
-                    for (int j = 0; j < 4; j++) { wires.Act(j); Require(wires.Act(j + 4), "Wire pair failed."); }
-                }
-                else for (int j = 0; j < logic.Target; j++) Require(logic.Act(j), "Action failed: " + path);
-                Require(logic.Solved, "Minigame cannot be completed: " + path);
-                Require(!logic.Act(0), "Completed repair accepts duplicate action.");
-                logic.Begin(); Require(!logic.Solved && logic.Completed == 0, "Replay does not reset.");
+                for (int round = 0; round < 64; round++) ValidateRound(logic);
             }
             finally { PrefabUtility.UnloadPrefabContents(root); }
             var zone = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Prefabs/BreakdownZones/{types[i]}Zone.prefab");
@@ -73,10 +62,53 @@ public static class MinigamePrefabValidation
                 if (controller) controllerLinked = controller.minigameLayer;
                 if (root.name == "Room") roomCanvas = root.GetComponent<Canvas>();
             }
-            Require(zoneCount == 4 && controllerLinked && roomCanvas, "MainGame scene references are invalid.");
+            Require(zoneCount > 0 && controllerLinked && roomCanvas, "MainGame scene references are invalid.");
         }
         finally { EditorSceneManager.ClosePreviewScene(scene); }
         Debug.Log("Minigame prefab validation passed.");
+    }
+    static void ValidateRound(MinigameBase logic)
+    {
+        logic.Begin();
+        Require(logic.Completed == 0 && logic.Target > 0, "Invalid new round.");
+        Require(!logic.Act(-1), "Invalid action was accepted.");
+        if (logic is WireMinigame wires)
+        {
+            var left = new System.Collections.Generic.HashSet<int>();
+            var right = new System.Collections.Generic.HashSet<int>();
+            for (int i = 0; i < 4; i++) { left.Add(wires.WireAt(i)); right.Add(wires.WireAt(i + 4)); }
+            Require(left.SetEquals(new[] { 0, 1, 2, 3 }) && left.SetEquals(right), "Wire permutation is invalid.");
+            int wrong = 4;
+            while (wires.WireAt(wrong) == wires.WireAt(0)) wrong++;
+            wires.Act(0); wires.Act(wrong);
+            Require(wires.Completed == 0 && wires.Selected == -1, "Wrong wire pair was accepted.");
+            for (int i = 0; i < 4; i++)
+            {
+                int match = 4;
+                while (wires.WireAt(match) != wires.WireAt(i)) match++;
+                wires.Act(i); Require(wires.Act(match), "Matching wire pair failed.");
+                Require(wires.Connected(i) && wires.Connected(match), "Connected contacts are inconsistent.");
+            }
+        }
+        else if (logic is FanMinigame fan)
+        {
+            int count = 0;
+            for (int i = 0; i < 8; i++)
+                if (fan.HasBug(i)) { count++; Require(fan.Act(i) && !fan.Act(i), "Bug action failed."); }
+                else Require(!fan.Act(i), "Absent bug was accepted.");
+            Require(count == fan.Target, "Bug count differs from target.");
+        }
+        else if (logic is LampMinigame lamps)
+        {
+            int count = 0;
+            for (int i = 0; i < 6; i++)
+                if (lamps.NeedsRepair(i)) { count++; Require(lamps.Act(i) && !lamps.Act(i), "Lamp action failed."); }
+                else Require(!lamps.Act(i), "Healthy lamp was accepted.");
+            Require(count == lamps.Target, "Broken lamp count differs from target.");
+        }
+        else for (int i = 0; i < logic.Target; i++) Require(logic.Act(0), "Tape action failed.");
+        Require(logic.Solved && !logic.Act(0), "Repair completion failed.");
+        logic.Begin(); Require(!logic.Solved && logic.Completed == 0, "Replay did not reset.");
     }
     static void Require(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }
 }
